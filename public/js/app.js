@@ -1838,6 +1838,7 @@ module.exports = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _mixins_utilityMixin__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../mixins/utilityMixin */ "./resources/js/mixins/utilityMixin.js");
 //
 //
 //
@@ -1873,14 +1874,17 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       facets: {},
       docs: {},
-      solrQuery: ""
+      solrQuery: "",
+      filters: []
     };
   },
+  mixins: [_mixins_utilityMixin__WEBPACK_IMPORTED_MODULE_0__["default"]],
   mounted: function mounted() {
     this.search();
   },
@@ -1894,20 +1898,40 @@ __webpack_require__.r(__webpack_exports__);
         }
       }
     },
-    search: function search(e) {
+    add_filter: function add_filter(category) {
       var _this = this;
 
-      axios.get("/api/search?query=" + this.solrQuery, "search", 15000).then(function (response) {
-        _this.docs = response.data.results;
-        _this.facets = response.data.facets;
+      var cat = encodeURIComponent(category);
+      var action = "add";
+
+      if (this.in_array(cat, this.filters) !== false) {
+        action = "remove";
+      }
+
+      axios.post("/api/filter", {
+        "fq": cat,
+        "action": action
+      }).then(function (response) {
+        if (response.data.action_taken === "add") {
+          _this.filters.push(cat);
+        } else {
+          _this.remove_element(cat, _this.filters);
+        }
+
+        _this.search();
       })["catch"](function (error) {
         console.log(error);
       });
     },
-    decoder: function decoder(str, maxLen) {
-      var textArea = document.createElement('textarea');
-      textArea.innerHTML = str;
-      return textArea.value.length > maxLen ? textArea.value.substr(0, maxLen) + "..." : textArea.value;
+    search: function search(e) {
+      var _this2 = this;
+
+      axios.get("/api/search?query=" + this.solrQuery, "search", 15000).then(function (response) {
+        _this2.docs = response.data.results;
+        _this2.facets = response.data.facets;
+      })["catch"](function (error) {
+        console.log(error);
+      });
     },
     renderResult: function renderResult(doc) {
       if (doc.title !== undefined && doc.description !== undefined) {
@@ -1915,29 +1939,29 @@ __webpack_require__.r(__webpack_exports__);
         html += "<div  class='search-result'>";
         html += "<span class='result-title'>";
         html += "<a href='" + doc.uri + "' target='_blank'>";
-        html += doc.highlight_title_text !== undefined && doc.highlight_title_text !== null && doc.highlight_title_text != '' ? doc.highlight_title_text : this.decoder(doc.title, 120);
+        html += doc.highlight_title_text !== undefined && doc.highlight_title_text !== null && doc.highlight_title_text !== '' ? doc.highlight_title_text : this.decoder(doc.title, 120);
         html += "</a>";
         html += "</span>";
         html += "<div class='result-link'>";
-        html += doc.highlight_uri_text !== undefined && doc.highlight_uri_text !== null && doc.highlight_uri_text != '' ? doc.highlight_uri_text : this.decoder(doc.uri, 120);
+        html += doc.highlight_uri_text !== undefined && doc.highlight_uri_text !== null && doc.highlight_uri_text !== '' ? doc.highlight_uri_text : this.decoder(doc.uri, 120);
         html += "</div>";
         html += "<div>";
         var hl = "";
 
-        if (doc.highlight_description_text !== undefined && doc.highlight_description_text !== null && doc.highlight_description_text != '') {
+        if (doc.highlight_description_text !== undefined && doc.highlight_description_text !== null && doc.highlight_description_text !== '') {
           hl += doc.highlight_description_text + "... ";
         }
 
-        if (doc.highlight_text_text !== undefined && doc.highlight_text_text !== null && doc.highlight_text_text != '') {
+        if (doc.highlight_text_text !== undefined && doc.highlight_text_text !== null && doc.highlight_text_text !== '') {
           hl += doc.highlight_text_text + "... ";
         }
 
-        if (doc.highlight_paragraphs !== undefined && doc.highlight_paragraphs !== null && doc.highlight_paragraphs != '') {
+        if (doc.highlight_paragraphs !== undefined && doc.highlight_paragraphs !== null && doc.highlight_paragraphs !== '') {
           hl += doc.highlight_paragraphs + "... ";
         }
 
         html += "<span class='result-description'>";
-        html += hl !== undefined && hl !== null && hl != '' ? hl : this.decoder(doc.description, 350);
+        html += hl !== undefined && hl !== null && hl !== '' ? hl : this.decoder(doc.description, 550);
         html += "</span>";
         html += "</div>";
         html += "</div>";
@@ -37298,10 +37322,17 @@ var render = function() {
         _vm._l(_vm.facets, function(count, category) {
           return _c("div", [
             _c("div", { staticStyle: { float: "left" } }, [
-              _vm._v(
-                "\n                    " +
-                  _vm._s(_vm.decoder(category, 30)) +
-                  "\n                "
+              _c(
+                "a",
+                {
+                  attrs: { href: "#" },
+                  on: {
+                    click: function($event) {
+                      return _vm.add_filter(category)
+                    }
+                  }
+                },
+                [_vm._v(_vm._s(_vm.decoder(category, 30)))]
               )
             ]),
             _vm._v(" "),
@@ -49626,6 +49657,45 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_SolrSearch_vue_vue_type_template_id_46559cd5___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
 
 
+
+/***/ }),
+
+/***/ "./resources/js/mixins/utilityMixin.js":
+/*!*********************************************!*\
+  !*** ./resources/js/mixins/utilityMixin.js ***!
+  \*********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = ({
+  methods: {
+    decoder: function decoder(str, maxLen) {
+      var textArea = document.createElement('textarea');
+      textArea.innerHTML = str;
+      return textArea.value.length > maxLen ? textArea.value.substr(0, maxLen) + "..." : textArea.value;
+    },
+    in_array: function in_array(needle, haystack) {
+      var length = haystack.length;
+
+      for (var i = 0; i < length; i++) {
+        if (haystack[i] === needle) return i;
+      }
+
+      return false;
+    },
+    remove_element: function remove_element(needle, haystack) {
+      var index = haystack.indexOf(needle);
+
+      if (index > -1) {
+        haystack.splice(index, 1);
+      }
+
+      return haystack;
+    }
+  }
+});
 
 /***/ }),
 

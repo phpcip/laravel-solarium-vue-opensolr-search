@@ -14,5 +14,6 @@ use Illuminate\Http\Request;
 */
 
 
-Route::get('/search', 'API\SolrController@search')->name('categories');
+Route::get('/search', 'API\SolrController@search')->name('search');
+Route::post('/filter', 'API\SolrController@filter')->name('filter');
 
