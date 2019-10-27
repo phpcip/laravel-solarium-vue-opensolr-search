@@ -13,5 +13,3 @@ Requirements:
 - php 7.x
 
 This connects to a Solr index (hosted at Opensolr.com), and creates a small Search Engine UI, fully based on Vue and the Solarium library, and a few Laravel API controllers.
-
-Feel free to 
